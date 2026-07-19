@@ -2,17 +2,19 @@ import bcrypt from "bcrypt";
 
 import UserModel from "../models/User.js";
 
-import mongoose from "mongoose";
-
 import dotenv from "dotenv";
+
+import connectDB from "../config/db.js";
+
+import { SALT_ROUNDS } from "../constants/security.js";
 
 dotenv.config();
 
 const createAdmin = async () => {
-  await mongoose.connect(process.env.MONGODB_URI!);
+  await connectDB();
 
   const existingAdmin = await UserModel.findOne({
-    email: "admin@test.com",
+    email: process.env.ADMIN_EMAIL,
   });
 
   if (existingAdmin) {
@@ -21,12 +23,15 @@ const createAdmin = async () => {
     process.exit();
   }
 
-  const hashedPassword = await bcrypt.hash("Admin@123", 10);
+  const hashedPassword = await bcrypt.hash(
+    process.env.ADMIN_PASSWORD!,
+    SALT_ROUNDS,
+  );
 
   await UserModel.create({
-    name: "Admin",
+    name: process.env.ADMIN_NAME,
 
-    email: "admin@test.com",
+    email: process.env.ADMIN_EMAIL,
 
     password: hashedPassword,
 
